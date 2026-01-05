@@ -8,6 +8,8 @@ import { Chart, registerables } from 'chart.js';
 import { fakerEN_US as faker } from '@faker-js/faker';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import './App.css';
+// API base: use VITE_API_URL when set; in production default to relative paths so `/api/*` routes to Vercel functions
+const API_BASE = import.meta.env.VITE_API_URL ?? (import.meta.env.MODE === 'production' ? '' : 'http://localhost:3001');
 
 Chart.register(...registerables, ChartDataLabels);
 
@@ -216,7 +218,7 @@ function App() {
 
   const fetchSpreadsheets = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/spreadsheets');
+      const response = await fetch(`${API_BASE}/api/spreadsheets`);
       if (response.ok) {
         const data = await response.json();
         setSpreadsheetsList(data);
@@ -229,7 +231,7 @@ function App() {
   const fetchSheetMetadata = async (ssId) => {
     if (!ssId) return;
     try {
-      const response = await fetch(`http://localhost:3001/api/sheets/${ssId}/metadata`);
+      const response = await fetch(`${API_BASE}/api/sheets/${ssId}/metadata`);
       if (response.ok) {
         const data = await response.json();
         setAvailableSheets(data);
@@ -540,7 +542,7 @@ function App() {
     const rangeToUse = rangeParam || sheetName || 'Sheet1';
     setLoadingSheet(true);
     try {
-      const response = await fetch(`http://localhost:3001/api/sheets/${selectedSpreadsheetId}?range=${encodeURIComponent(rangeToUse)}`);
+      const response = await fetch(`${API_BASE}/api/sheets/${selectedSpreadsheetId}?range=${encodeURIComponent(rangeToUse)}`);
       if (!response.ok) throw new Error('Failed to fetch from backend');
       const rows = await response.json();
 

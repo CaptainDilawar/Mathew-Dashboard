@@ -21,6 +21,10 @@ yarn-error.log*
 credentials.json
 token.json
 
+# Backend-local credentials (explicit)
+/backend/credentials.json
+/backend/token.json
+
 # IDE and editor directories
 .idea/
 .vscode/
