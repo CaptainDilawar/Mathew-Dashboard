@@ -1,4 +1,7 @@
 const { google } = require('googleapis');
+const path = require('path');
+const { promises: fs } = require('fs');
+const { authenticate } = require('@google-cloud/local-auth');
 
 // Scopes used by the app
 const SCOPES = [
@@ -12,57 +15,70 @@ const SCOPES = [
   'https://www.googleapis.com/auth/drive.appdata'
 ];
 
-function loadSavedCredentialsIfExist() {
-  const tokenJson = process.env.GOOGLE_TOKEN;
-  if (!tokenJson) return null;
+const CREDENTIALS_PATH = path.join(__dirname, '..', 'credentials.json');
+const TOKEN_PATH = path.join(__dirname, '..', 'token.json');
+
+/**
+ * Reads a JSON file.
+ */
+async function readJson(filePath) {
   try {
-    const parsed = JSON.parse(tokenJson);
-    const client = new google.auth.OAuth2(parsed.client_id || parsed.clientId, parsed.client_secret || parsed.clientSecret);
-    client.setCredentials(parsed);
-    return client;
-  } catch (e) {
+    const content = await fs.readFile(filePath);
+    return JSON.parse(content);
+  } catch (err) {
     return null;
   }
 }
 
-function saveCredentialsHint(client) {
-  // We cannot persist credentials to disk on serverless. Print instructions for operator to create env var.
-  const payload = {
-    type: 'authorized_user',
-    client_id: client._clientId || process.env.GOOGLE_CLIENT_ID || null,
-    client_secret: client._clientSecret || process.env.GOOGLE_CLIENT_SECRET || null,
-    refresh_token: client.credentials && client.credentials.refresh_token
-  };
-  console.log('\n--- GOOGLE_TOKEN hint (use this JSON to set the GOOGLE_TOKEN env var) ---');
-  console.log(JSON.stringify(payload));
-  console.log('--- End ---\n');
-}
-
+/**
+ * Authorize a client with credentials, then call the Google Drive API.
+ */
 async function authorize() {
-  let client = loadSavedCredentialsIfExist();
-  if (client) return client;
-
-  const credsJson = process.env.GOOGLE_CREDENTIALS;
-  if (!credsJson) {
-    throw new Error('Missing GOOGLE_CREDENTIALS environment variable. Set it to the contents of your credentials.json (client_id & client_secret).');
-  }
-
-  const keys = JSON.parse(credsJson);
-  const key = keys.installed || keys.web;
-  const oAuth2Client = new google.auth.OAuth2(key.client_id, key.client_secret, process.env.GOOGLE_REDIRECT_URI || '');
-
+  // First, try to load credentials from the environment variable (for Vercel)
   if (process.env.GOOGLE_TOKEN) {
     try {
-      const tokens = JSON.parse(process.env.GOOGLE_TOKEN);
-      oAuth2Client.setCredentials(tokens);
-      return oAuth2Client;
+      const parsed = JSON.parse(process.env.GOOGLE_TOKEN);
+      const client = new google.auth.OAuth2(parsed.client_id, parsed.client_secret);
+      client.setCredentials({ refresh_token: parsed.refresh_token });
+      return client;
     } catch (e) {
-      throw new Error('GOOGLE_TOKEN is invalid JSON.');
+      console.warn('Could not parse GOOGLE_TOKEN env var.', e);
+      // fallback to local flow
     }
   }
 
-  // If we reach here there's no token available for serverless runtime
-  throw new Error('No Google refresh token found. Generate a refresh token locally and set it as the GOOGLE_TOKEN environment variable (see project README).');
+  // Second, try to load the saved token from token.json
+  try {
+    const token = await readJson(TOKEN_PATH);
+    if (token && token.refresh_token) {
+      const creds = await readJson(CREDENTIALS_PATH);
+      if(creds) {
+          const { client_secret, client_id, redirect_uris } = creds.installed || creds.web;
+          const client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+          client.setCredentials(token);
+          return client;
+      }
+    }
+  } catch (err) {
+    console.log('No local token found, or it is invalid.');
+  }
+
+  // Third, if no token, authenticate using local-auth flow
+  try {
+    const client = await authenticate({
+      scopes: SCOPES,
+      keyfilePath: CREDENTIALS_PATH,
+    });
+    if (client.credentials) {
+      // Save the new token
+      await fs.writeFile(TOKEN_PATH, JSON.stringify(client.credentials, null, 2));
+      console.log('New token saved to', TOKEN_PATH);
+    }
+    return client;
+  } catch (err) {
+    console.error('Local authentication failed.', err);
+    throw new Error('Could not authenticate. Ensure credentials.json is in the `backend` directory and that you can open a browser for the OAuth flow.');
+  }
 }
 
-module.exports = { authorize, SCOPES, saveCredentialsHint };
+module.exports = { authorize, SCOPES };
