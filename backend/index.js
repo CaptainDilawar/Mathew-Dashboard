@@ -5,7 +5,8 @@ const spreadsheetsRouter = require('./api/spreadsheets');
 const sheetRouter = require('./api/sheet');
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
+const host = '0.0.0.0';
 
 app.use(cors());
 app.use(express.json());
@@ -47,6 +48,6 @@ app.get('/api/sheets/:sheetId/metadata', asyncHandler((req, res, next) => {
 }));
 
 
-app.listen(port, () => {
-  console.log(`Backend server listening at http://localhost:${port}`);
+app.listen(port, host, () => {
+  console.log(`Backend server listening on ${host}:${port}`);
 });

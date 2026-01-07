@@ -103,3 +103,103 @@ Now, set up the frontend application in a **new terminal window**.
     - You will be greeted with the login screen. Use the credentials you set in the `backend/.env` file.
 
 You are now ready to use the Lead Generation Dashboard locally!
+
+
+
+---
+
+
+
+## Deployment
+
+
+
+These instructions cover deploying the backend to [Railway](https://railway.app/) and the frontend to [IONOS](https://www.ionos.com/).
+
+
+
+### 1. Backend Deployment (Railway)
+
+
+
+1.  **Create a Railway Project:**
+
+    - Sign up for a Railway account and create a new project.
+
+    - Link your GitHub repository to the project. Railway will automatically detect the `package.json` and deploy the `main` branch.
+
+
+
+2.  **Generate `GOOGLE_TOKEN`:**
+
+    - Before you can deploy, you need to generate a `GOOGLE_TOKEN` that allows the backend to authenticate with Google Sheets in a server environment.
+
+    - Run the following command in your local `backend` directory:
+
+      ```bash
+
+      node generate-token.js
+
+      ```
+
+    - This will open a browser window for you to authenticate with Google.
+
+    - After you log in, the script will print a JSON object to your terminal. **Copy this entire JSON object.** It is your `GOOGLE_TOKEN`.
+
+
+
+3.  **Configure Environment Variables on Railway:**
+
+    - In your Railway project dashboard, go to the "Variables" tab.
+
+    - Add the following environment variables:
+
+      - `APP_USERNAME`: The username for the login page (e.g., `admin`).
+
+      - `APP_PASSWORD`: The password for the login page.
+
+      - `GOOGLE_TOKEN`: Paste the JSON object you copied from the previous step.
+
+      - `PORT`: Railway sets this automatically, but ensure your app uses it. The code is already configured for this.
+
+
+
+4.  **Deploy:**
+
+    - Once the variables are set, trigger a new deployment from your GitHub repository.
+
+    - Railway will build and deploy the backend. Find the public URL for your service (e.g., `my-backend-123.up.railway.app`). You will need this for the frontend setup.
+
+
+
+### 2. Frontend Deployment (IONOS)
+
+
+
+1.  **Build the Frontend for Production:**
+
+    - Before building, you must tell the frontend the URL of your deployed backend.
+
+    - In your local `frontend` directory, run the build command with the `VITE_API_URL` environment variable set to your Railway backend URL.
+
+      ```bash
+
+      # Replace 'https://your-railway-app-url.up.railway.app' with your actual backend URL
+
+      VITE_API_URL=https://your-railway-app-url.up.railway.app npm run build
+
+      ```
+
+    - This will create a `dist` folder inside the `frontend` directory. This folder contains all the optimized static files for your application.
+
+
+
+2.  **Upload to IONOS:**
+
+    - Log in to your IONOS account.
+
+    - Navigate to your web hosting space.
+
+    - Use the file manager or an FTP client (like FileZilla) to upload the **contents** of the `frontend/dist` folder to your web hosting root directory (e.g., `/`, `/httpdocs`, `/www`).
+
+    - After the upload is complete, your site should be live at your domain.

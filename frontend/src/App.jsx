@@ -9,8 +9,7 @@ import { fakerEN_US as faker } from '@faker-js/faker';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import './App.css';
 import LoginPage from './LoginPage';
-// API base: use VITE_API_URL when set; in production default to relative paths so `/api/*` routes to Vercel functions
-const API_BASE = import.meta.env.VITE_API_URL ?? (import.meta.env.MODE === 'production' ? '' : 'http://localhost:3001');
+const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.MODE === 'production' ? 'https://your-backend-url.com' : 'http://localhost:3001');
 
 Chart.register(...registerables, ChartDataLabels);
 
