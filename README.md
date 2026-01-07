@@ -1,30 +1,105 @@
-# Mathew-Dashboard
-A data analytics dashboard connecting sheets api, n8n.
+# Lead Generation Dashboard
+
+This is a full-stack web application that serves as a dashboard for visualizing lead generation data. It provides an interactive interface to view data from Google Sheets or uploaded CSV files, displaying charts and tables for analysis.
+
+## Features
+
+- **User Authentication**: A simple login page to protect the dashboard. Credentials are managed via an environment file on the backend.
+- **Data Visualization**: Interactive charts (Bar, Pie, Line) powered by Chart.js to display key metrics like:
+  - Leads per category
+  - Companies founded per year
+  - Top job positions
+- **Google Sheets Integration**: Securely load data directly from your Google Sheets. The application authenticates with the Google Sheets API on the backend.
+- **CSV Upload**: Upload your own CSV files containing lead or company data.
+- **Mock Data Generation**: Generate random data to quickly see the dashboard's capabilities without needing your own data.
+- **Data Table**: View, filter, and sort company data in a paginated table.
+- **Data Export**: Export chart data to CSV or the charts themselves as PNG images.
+- **AI Chatbot**: An integrated chatbot to assist with data-related queries.
+
+## Tech Stack
+
+- **Frontend**:
+  - React (with Vite)
+  - Material-UI (MUI) for components and styling
+  - Chart.js for data visualization
+  - Papa Parse for CSV parsing
+
+- **Backend**:
+  - Node.js
+  - Express.js for the server and API
+  - Google APIs Client Library (`googleapis`) for Google Sheets integration
+  - `@google-cloud/local-auth` for handling OAuth 2.0 flow locally.
+  - `dotenv` for managing environment variables.
 
 ---
 
-## Vercel monorepo deployment (frontend + serverless backend)
+## Local Development Setup
 
-Steps to deploy this repo as a monorepo on Vercel:
+Follow these steps to run the application on your local machine.
 
-1. Import the repository into Vercel and make sure you **import the root** of the repository (so `vercel.json` is used).
-2. When prompted for Build & Output settings, Vercel will use `vercel.json` to configure builds: the `frontend` folder is built as a static site and `backend/api/*.js` files are serverless endpoints.
+### Prerequisites
 
-Environment variables to set in Vercel (Project > Settings > Environment Variables):
-- `GOOGLE_CREDENTIALS` — the full JSON from your `credentials.json` (stringify the JSON file contents).
-- `GOOGLE_TOKEN` — the authorized user JSON (contains `refresh_token`) produced after you authorize the app locally (see below). This is required for serverless runtime to access Sheets/Drive.
-- `VITE_API_URL` — optional. If set, the frontend will use this as API base. If not set, the app will use relative `/api/...` paths in production (recommended).
+- [Node.js](https://nodejs.org/) (v14 or later recommended)
+- `npm` (usually comes with Node.js)
 
-How to obtain `GOOGLE_TOKEN` (quick):
-1. Run the existing local backend to perform OAuth once: `node backend/index.js`.
-2. Follow the browser-based authorization flow; `token.json` will be created in `backend/`.
-3. Copy the contents of `backend/token.json` and set it as the `GOOGLE_TOKEN` environment variable in Vercel (stringified JSON).
+### 1. Backend Setup
 
-Security notes:
-- Do not commit `credentials.json` or `token.json` to the repository. `.gitignore` already excludes `credentials.json` / `token.json` and we added explicit `/backend/credentials.json` and `/backend/token.json` entries.
-- Serverless functions cannot write to local disk persistently; keep `GOOGLE_TOKEN` in a secure environment variable or use a managed secret store.
+First, set up the backend server.
 
-If you'd like, I can:
-- Add a short script to help you generate the `GOOGLE_TOKEN` JSON, or
-- Implement an OAuth web flow that exchanges authorization codes and stores tokens in an external DB.
+1.  **Navigate to the backend directory:**
+    ```bash
+    cd backend
+    ```
 
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Set up Google API Credentials:**
+    - Go to the [Google Cloud Console](https://console.cloud.google.com/).
+    - Create a new project or select an existing one.
+    - Enable the **Google Drive API** and **Google Sheets API**.
+    - Go to "Credentials" and create a new **OAuth 2.0 Client ID**.
+    - When asked for the application type, select **Desktop app**. This is the easiest way to run it locally.
+    - After creation, click the "Download JSON" button.
+    - Rename the downloaded file to `credentials.json` and place it inside the `backend` directory.
+
+4.  **Set up Application Login Credentials:**
+    - In the `backend` directory, create a file named `.env`.
+    - Add the following content to it. You can change the username and password to whatever you like.
+      ```
+      APP_USERNAME=admin
+      APP_PASSWORD=password
+      ```
+
+5.  **Start the backend server:**
+    ```bash
+    npm start
+    ```
+    The server will start on `http://localhost:3001`. The first time you access data from Google Sheets, it will open a browser window for you to authenticate. After that, a `token.json` file will be created to keep you logged in.
+
+### 2. Frontend Setup
+
+Now, set up the frontend application in a **new terminal window**.
+
+1.  **Navigate to the frontend directory:**
+    ```bash
+    cd frontend
+    ```
+
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Start the frontend development server:**
+    ```bash
+    npm run dev
+    ```
+
+4.  **Access the application:**
+    - The command will output a local URL (usually `http://localhost:5173`). Open this URL in your web browser.
+    - You will be greeted with the login screen. Use the credentials you set in the `backend/.env` file.
+
+You are now ready to use the Lead Generation Dashboard locally!

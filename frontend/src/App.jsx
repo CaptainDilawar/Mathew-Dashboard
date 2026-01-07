@@ -15,7 +15,7 @@ const API_BASE = import.meta.env.VITE_API_URL ?? (import.meta.env.MODE === 'prod
 Chart.register(...registerables, ChartDataLabels);
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('isAuthenticated') === 'true');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [leadsPerCategory, setLeadsPerCategory] = useState({});
   const [companiesPerYear, setCompaniesPerYear] = useState({});
   const [topPositions, setTopPositions] = useState({});
@@ -35,12 +35,10 @@ function App() {
   ]);
 
   const handleLogin = () => {
-    localStorage.setItem('isAuthenticated', 'true');
     setIsAuthenticated(true);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
     setIsAuthenticated(false);
   };
 
