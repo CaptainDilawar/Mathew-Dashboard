@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { AppBar, Toolbar, Typography, Button, Tabs, Tab, Box, Card, CardContent, Grid, CssBaseline, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Select, MenuItem, TextField, TableContainer, TablePagination, TableSortLabel, Paper, InputLabel, FormControl, Fab, Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText } from '@mui/material';
-import { Brightness4, Brightness7, SaveAlt, Refresh, Chat, Send, Logout } from '@mui/icons-material';
+import { AppBar, Toolbar, Typography, Button, Tabs, Tab, Box, Card, CardContent, Grid, CssBaseline, IconButton, Table, TableBody, TableCell, TableHead, TableRow, Select, MenuItem, TextField, TableContainer, TablePagination, TableSortLabel, Paper, InputLabel, FormControl, Fab, Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText, Drawer, Menu, useMediaQuery } from '@mui/material';
+import { Brightness4, Brightness7, SaveAlt, Refresh, Chat, Send, Logout, Menu as MenuIcon, Close } from '@mui/icons-material';
 import Papa from 'papaparse';
 import { Bar, Pie, Line } from 'react-chartjs-2';
 import { Chart, registerables } from 'chart.js';
@@ -25,6 +25,8 @@ function App() {
   const [animatedLeads, setAnimatedLeads] = useState(0);
   const [animatedCompanies, setAnimatedCompanies] = useState(0);
   const [darkMode, setDarkMode] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const isMobile = useMediaQuery('(max-width:899px)');
 
   // Chatbot states
   const [isChatOpen, setChatOpen] = useState(false);
@@ -183,7 +185,7 @@ function App() {
     // Generate fake companies and keep a master companiesData list
     const companies = Array.from({ length: 100 }, () => ({
       'Founded Year': faker.date.past({ years: 20 }).getFullYear(),
-      Position: faker.name.jobTitle(),
+      Position: faker.person.jobTitle(),
       Name: faker.company.name(),
       'Total Funding': Number(faker.finance.amount(100000, 10000000, 0)),
     }));
@@ -375,7 +377,7 @@ function App() {
   const refreshData = () => {
     const companies = Array.from({ length: 100 }, () => ({
       'Founded Year': faker.date.past({ years: 20 }).getFullYear(),
-      Position: faker.name.jobTitle(),
+      Position: faker.person.jobTitle(),
       Name: faker.company.name(),
       'Total Funding': Number(faker.finance.amount(100000, 10000000, 0)),
     }));
@@ -680,35 +682,141 @@ function App() {
         }}
       >
         <Toolbar sx={{ justifyContent: 'space-between' }}>
-          <Typography variant="h6">Dashboard</Typography>
-          <IconButton onClick={handleLogout} color="inherit">
-            <Logout />
-          </IconButton>
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>Dashboard</Typography>
+          {isMobile ? (
+            <IconButton onClick={() => setMobileMenuOpen(!mobileMenuOpen)} color="inherit">
+              {mobileMenuOpen ? <Close /> : <MenuIcon />}
+            </IconButton>
+          ) : (
+            <IconButton onClick={handleLogout} color="inherit">
+              <Logout />
+            </IconButton>
+          )}
         </Toolbar>
-        <Tabs
-          value={activeTab}
-          onChange={handleTabChange}
-          centered
+        {!isMobile && (
+          <Tabs
+            value={activeTab}
+            onChange={handleTabChange}
+            centered
+            sx={{
+              '& .MuiTabs-indicator': {
+                height: 3,
+                borderRadius: '3px 3px 0 0',
+                background: 'linear-gradient(90deg, #6366f1, #ec4899)',
+              },
+              '& .MuiTab-root': {
+                fontSize: '0.9rem',
+                fontWeight: 600,
+                color: '#94a3b8',
+                '&.Mui-selected': { color: '#fff' }
+              }
+            }}
+          >
+            <Tab label="Overview" />
+            <Tab label="Growth Trends" />
+            <Tab label="Market Dist." />
+            <Tab label="Top Entities" />
+          </Tabs>
+        )}
+      </AppBar>
+      {isMobile && mobileMenuOpen && (
+        <Box
           sx={{
-            '& .MuiTabs-indicator': {
-              height: 3,
-              borderRadius: '3px 3px 0 0',
-              background: 'linear-gradient(90deg, #6366f1, #ec4899)',
-            },
-            '& .MuiTab-root': {
-              fontSize: '0.9rem',
-              fontWeight: 600,
-              color: '#94a3b8',
-              '&.Mui-selected': { color: '#fff' }
-            }
+            background: 'rgba(12, 14, 20, 0.95)',
+            backdropFilter: 'blur(20px)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+            padding: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1
           }}
         >
-          <Tab label="Overview" />
-          <Tab label="Growth Trends" />
-          <Tab label="Market Dist." />
-          <Tab label="Top Entities" />
-        </Tabs>
-      </AppBar>
+          <Button
+            fullWidth
+            onClick={() => {
+              setActiveTab(0);
+              setMobileMenuOpen(false);
+            }}
+            sx={{
+              justifyContent: 'flex-start',
+              color: activeTab === 0 ? '#6366f1' : '#94a3b8',
+              fontWeight: activeTab === 0 ? 700 : 500,
+              padding: '12px 16px',
+              borderLeft: activeTab === 0 ? '3px solid #6366f1' : 'none',
+              '&:hover': { background: 'rgba(99, 102, 241, 0.1)' }
+            }}
+          >
+            Overview
+          </Button>
+          <Button
+            fullWidth
+            onClick={() => {
+              setActiveTab(1);
+              setMobileMenuOpen(false);
+            }}
+            sx={{
+              justifyContent: 'flex-start',
+              color: activeTab === 1 ? '#6366f1' : '#94a3b8',
+              fontWeight: activeTab === 1 ? 700 : 500,
+              padding: '12px 16px',
+              borderLeft: activeTab === 1 ? '3px solid #6366f1' : 'none',
+              '&:hover': { background: 'rgba(99, 102, 241, 0.1)' }
+            }}
+          >
+            Growth Trends
+          </Button>
+          <Button
+            fullWidth
+            onClick={() => {
+              setActiveTab(2);
+              setMobileMenuOpen(false);
+            }}
+            sx={{
+              justifyContent: 'flex-start',
+              color: activeTab === 2 ? '#6366f1' : '#94a3b8',
+              fontWeight: activeTab === 2 ? 700 : 500,
+              padding: '12px 16px',
+              borderLeft: activeTab === 2 ? '3px solid #6366f1' : 'none',
+              '&:hover': { background: 'rgba(99, 102, 241, 0.1)' }
+            }}
+          >
+            Market Distribution
+          </Button>
+          <Button
+            fullWidth
+            onClick={() => {
+              setActiveTab(3);
+              setMobileMenuOpen(false);
+            }}
+            sx={{
+              justifyContent: 'flex-start',
+              color: activeTab === 3 ? '#6366f1' : '#94a3b8',
+              fontWeight: activeTab === 3 ? 700 : 500,
+              padding: '12px 16px',
+              borderLeft: activeTab === 3 ? '3px solid #6366f1' : 'none',
+              '&:hover': { background: 'rgba(99, 102, 241, 0.1)' }
+            }}
+          >
+            Top Entities
+          </Button>
+          <Box sx={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)', mt: 2, pt: 2 }}>
+            <Button
+              fullWidth
+              onClick={handleLogout}
+              startIcon={<Logout />}
+              sx={{
+                justifyContent: 'flex-start',
+                color: '#ec4899',
+                fontWeight: 600,
+                padding: '12px 16px',
+                '&:hover': { background: 'rgba(236, 72, 153, 0.1)' }
+              }}
+            >
+              Logout
+            </Button>
+          </Box>
+        </Box>
+      )}
       <Box sx={{ p: { xs: 2, md: 4 } }}>
         <Box sx={{ mt: 2 }}>
           {/* Controls: Google Sheets, CSV upload, filters, search, export, refresh */}

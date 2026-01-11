@@ -5,14 +5,8 @@ const { authenticate } = require('@google-cloud/local-auth');
 
 // Scopes used by the app
 const SCOPES = [
-  'https://www.googleapis.com/auth/spreadsheets',
   'https://www.googleapis.com/auth/spreadsheets.readonly',
-  'https://www.googleapis.com/auth/drive',
-  'https://www.googleapis.com/auth/drive.file',
-  'https://www.googleapis.com/auth/drive.readonly',
-  'https://www.googleapis.com/auth/drive.metadata',
-  'https://www.googleapis.com/auth/drive.metadata.readonly',
-  'https://www.googleapis.com/auth/drive.appdata'
+  'https://www.googleapis.com/auth/drive.metadata.readonly'
 ];
 
 const CREDENTIALS_PATH = path.join(__dirname, '..', 'credentials.json');
@@ -52,11 +46,11 @@ async function authorize() {
     const token = await readJson(TOKEN_PATH);
     if (token && token.refresh_token) {
       const creds = await readJson(CREDENTIALS_PATH);
-      if(creds) {
-          const { client_secret, client_id, redirect_uris } = creds.installed || creds.web;
-          const client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
-          client.setCredentials(token);
-          return client;
+      if (creds) {
+        const { client_secret, client_id, redirect_uris } = creds.installed || creds.web;
+        const client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+        client.setCredentials(token);
+        return client;
       }
     }
   } catch (err) {

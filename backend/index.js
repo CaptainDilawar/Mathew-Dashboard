@@ -8,8 +8,18 @@ const app = express();
 const port = process.env.PORT || 3001;
 const host = '0.0.0.0';
 
-app.use(cors());
+if (!process.env.APP_USERNAME || !process.env.APP_PASSWORD) {
+  console.warn('Warning: APP_USERNAME or APP_PASSWORD is not set. Login will fail until you set them in a .env file or environment.');
+}
+
+const corsOptions = {
+  origin: process.env.FRONTEND_ORIGIN || (process.env.NODE_ENV === 'production' ? '*' : 'http://localhost:5173'),
+};
+app.use(cors(corsOptions));
 app.use(express.json());
+
+// Health check endpoint
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 // Login endpoint
 app.post('/api/login', (req, res) => {
